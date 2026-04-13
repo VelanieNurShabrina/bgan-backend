@@ -315,7 +315,7 @@ def api_pdp_status():
 
     ip = None
 
-    # 2. If PDP active, retry CGPADDR (IMPORTANT)
+    # 2. If PDP active, retry CGPADDR 
     if pdp_active:
         for _ in range(3):  # retry max 3x
             res = _telnet_mgr.send(f"AT+CGPADDR={ACTIVE_CID}", timeout=6)
@@ -329,7 +329,7 @@ def api_pdp_status():
                             break
             if ip:
                 break
-            time.sleep(1.0)  # kasih waktu modem assign IP
+            time.sleep(1.0)  
 
     # 3. Cache ONLY valid IP
     if ip:
@@ -392,7 +392,7 @@ def api_pdp_activate():
 def api_pdp_deactivate():
     _telnet_mgr.send(f"AT+CGACT=0,{ACTIVE_CID}", timeout=6)
 
-    # kosongkan IP biar UI tau PDP mati
+    
     CACHE["pdp_ip"] = None
 
     return jsonify({
@@ -414,15 +414,15 @@ def api_apn_set():
     if not apn or not user or not password:
         return jsonify({"error": "apn, user, pass required"}), 400
 
-    # === STEP 1: MATIKAN PDP DULU (important)
+    # === STEP 1: Turn off PDP
     _telnet_mgr.send(f"AT+CGACT=0,{ACTIVE_CID}", timeout=6)
     time.sleep(0.5)
 
-    # === STEP 2: SET APN BARU (tanpa hidupkan PDP)
+    # === STEP 2: SET New APN 
     cmd = f'AT+CGDCONT={ACTIVE_CID},"IP","{apn}",0.0.0.0,0,0,"{user}","{password}"'
     _telnet_mgr.send(cmd, timeout=8)
 
-    # === Clear cache PDP, supaya UI tidak baca IP lama
+    # === Clear cache PDP, 
     CACHE["pdp_ip"] = None
 
     return jsonify({
